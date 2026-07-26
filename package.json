@@ -1,0 +1,33 @@
+{
+  "name": "energy-digital-twin-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "能源数据采集与数字孪生系统企业门户 — Next.js SSG",
+  "scripts": {
+    "dev": "next dev",
+    "build": "cd ./cms && npm run export && cd ../ && next build",
+    "start": "npx serve@latest out", 
+    "preview": "npx --yes serve out -l 5000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.417.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

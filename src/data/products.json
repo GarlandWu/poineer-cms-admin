@@ -1,0 +1,127 @@
+[
+  {
+    "slug": "edge-gateway-eg8000",
+    "modelNumber": "EG-8000",
+    "category": "边缘计算采集网关",
+    "title": "EG-8000 边缘计算采集网关",
+    "summary": "工业级边缘计算采集网关，支持多协议并发接入与本地算法拓扑，毫秒级采集、断网续传、边缘预处理。",
+    "samplingSpecs": {
+      "channels": "64 路并发采集",
+      "reportFrequency": "最快 10ms / 点",
+      "protocols": [
+        "Modbus-RTU",
+        "Modbus-TCP",
+        "MQTT",
+        "OPC UA",
+        "BACnet"
+      ]
+    },
+    "specifications": [
+      {
+        "key": "处理器",
+        "value": "四核 ARM Cortex-A53 1.5GHz"
+      },
+      {
+        "key": "内存/存储",
+        "value": "2GB RAM / 16GB eMMC"
+      },
+      {
+        "key": "供电",
+        "value": "DC 9~36V 宽压输入"
+      },
+      {
+        "key": "防护等级",
+        "value": "IP40 / -40~70℃ 工业级"
+      },
+      {
+        "key": "网络接口",
+        "value": "2× 千兆网口 / 4G / WiFi 可选"
+      },
+      {
+        "key": "串口",
+        "value": "4× RS485 / 2× RS232"
+      }
+    ],
+    "image": "/images/products/eg8000.svg",
+    "pdfSpecUrl": "/downloads/EG-8000-选型手册.pdf"
+  },
+  {
+    "slug": "smart-meter-dm300",
+    "modelNumber": "DM-300",
+    "category": "多功能智能电表",
+    "title": "DM-300 多功能智能电表",
+    "summary": "0.5S 级三相多功能智能电表，全电参量采集，支持 Modbus 与 DL/T645，适配数字孪生大屏实时能耗上报。",
+    "samplingSpecs": {
+      "channels": "三相全电参量",
+      "reportFrequency": "1s / 全参量",
+      "protocols": [
+        "Modbus-RTU",
+        "Modbus-TCP"
+      ]
+    },
+    "specifications": [
+      {
+        "key": "精度等级",
+        "value": "有功 0.5S / 无功 2.0"
+      },
+      {
+        "key": "测量参量",
+        "value": "电压/电流/功率/功率因数/谐波"
+      },
+      {
+        "key": "供电",
+        "value": "AC/DC 85~265V"
+      },
+      {
+        "key": "显示",
+        "value": "LCD 背光"
+      },
+      {
+        "key": "安装方式",
+        "value": "导轨式 / 嵌入式"
+      }
+    ],
+    "image": "/images/products/dm300.svg",
+    "pdfSpecUrl": "/downloads/DM-300-选型手册.pdf"
+  },
+  {
+    "slug": "serial-server-ss104",
+    "modelNumber": "SS-104",
+    "category": "串口服务器",
+    "title": "SS-104 工业串口服务器",
+    "summary": "4 口 RS485/232 转以太网串口服务器，稳定透传工业现场数据，支持 Modbus 网关与 IEC 104 转换。",
+    "samplingSpecs": {
+      "channels": "4× 串口透传",
+      "reportFrequency": "透传实时",
+      "protocols": [
+        "Modbus-RTU",
+        "Modbus-TCP",
+        "IEC 60870-5-104"
+      ]
+    },
+    "specifications": [
+      {
+        "key": "串口数量",
+        "value": "4× RS485 / RS232"
+      },
+      {
+        "key": "波特率",
+        "value": "300 ~ 460800 bps"
+      },
+      {
+        "key": "网络",
+        "value": "10/100M 自适应"
+      },
+      {
+        "key": "供电",
+        "value": "DC 9~48V"
+      },
+      {
+        "key": "防护等级",
+        "value": "IP30 金属外壳"
+      }
+    ],
+    "image": "/images/products/ss104.svg",
+    "pdfSpecUrl": "/downloads/SS-104-选型手册.pdf"
+  }
+]

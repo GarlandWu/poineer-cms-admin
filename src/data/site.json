@@ -1,0 +1,54 @@
+{
+  "name": "能源数据采集与数字孪生系统",
+  "shortName": "能源数字孪生",
+  "url": "https://www.your-energy-portal.com",
+  "description": "专注水/电/气/冷/热能源数据采集与工业级数字孪生解决方案，支持 Modbus、MQTT、OPC UA 等全协议采集，提供边缘计算网关、能效数字孪生大屏与负荷预测算法。",
+  "phone": "400-888-0000",
+  "wechat": "energy-twin-service",
+  "email": "sales@your-energy-portal.com",
+  "icp": "沪 ICP 备 000000 号",
+  "address": "上海市浦东新区能源科技园 A 座 12F",
+  "workingHours": "周一至周五 9:00–18:00",
+  "contactIntro": "无论您想预约一场 3D 数字孪生大屏演示，还是需要采集硬件选型咨询，我们的能效顾问团队都乐意为您服务。",
+  "nav": [
+    {
+      "label": "首页",
+      "href": "/"
+    },
+    {
+      "label": "解决方案",
+      "href": "/solutions/"
+    },
+    {
+      "label": "硬件产品",
+      "href": "/products/"
+    },
+    {
+      "label": "客户案例",
+      "href": "/cases/"
+    },
+    {
+      "label": "新闻干货",
+      "href": "/news/"
+    },
+    {
+      "label": "合作伙伴",
+      "href": "/partners/"
+    },
+    {
+      "label": "联系我们",
+      "href": "/contact/"
+    }
+  ],
+  "demoScenes": [
+    "智慧园区零碳管理",
+    "数据中心 PUE 优化",
+    "高耗能工厂能效监测",
+    "其他"
+  ],
+  "map": {
+    "lng": 121.5447,
+    "lat": 31.2216,
+    "coordType": "gcj02"
+  }
+}

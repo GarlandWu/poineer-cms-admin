@@ -1,0 +1,104 @@
+[
+  {
+    "slug": "smart-park-zero-carbon",
+    "title": "智慧园区零碳能源管理数字孪生",
+    "industry": "智慧园区",
+    "summary": "面向产业园区的水电气冷热全量能源采集与 3D 数字孪生大屏，助力园区实现零碳目标与精细化能效管理。",
+    "twinCapabilities": [
+      "3D 管道拓扑重构",
+      "动态能耗热力图",
+      "能效数字孪生大屏",
+      "负荷预测算法",
+      "碳排放实时核算"
+    ],
+    "supportedProtocols": [
+      "Modbus-TCP",
+      "MQTT",
+      "OPC UA",
+      "BACnet"
+    ],
+    "architectureImage": "/images/arch/smart-park.svg",
+    "roi": [
+      {
+        "label": "综合能耗下降",
+        "value": "18%"
+      },
+      {
+        "label": "运维人力节省",
+        "value": "40%"
+      },
+      {
+        "label": "投资回收周期",
+        "value": "14 个月"
+      }
+    ],
+    "body": "<p>通过部署边缘计算采集网关，对园区内配电房、中央空调、给排水与光伏系统进行毫秒级数据采集，统一汇聚至本地能源管理平台。</p><p>基于采集数据构建园区 3D 数字孪生模型，实现管道拓扑重构与动态能耗热力图叠加，管理者可在数字孪生大屏上一屏总览全园区能流。</p><p>内置负荷预测算法，结合历史用能曲线与气象数据，提前调度储能与柔性负荷，削峰填谷，稳步逼近零碳运营目标。</p>"
+  },
+  {
+    "slug": "datacenter-pue-optimization",
+    "title": "数据中心 PUE 优化数字孪生",
+    "industry": "数据中心",
+    "summary": "针对数据中心制冷与配电系统的高精度采集与数字孪生仿真，精准定位能耗黑洞，持续压降 PUE。",
+    "twinCapabilities": [
+      "机房 3D 气流仿真",
+      "PUE 实时数字孪生",
+      "冷热通道热力图",
+      "毫秒级数据采集"
+    ],
+    "supportedProtocols": [
+      "Modbus-TCP",
+      "OPC UA",
+      "IEC 60870-5-104"
+    ],
+    "architectureImage": "/images/arch/datacenter-pue.svg",
+    "roi": [
+      {
+        "label": "PUE 由 1.55 降至",
+        "value": "1.32"
+      },
+      {
+        "label": "年度电费节省",
+        "value": "¥ 480 万"
+      },
+      {
+        "label": "制冷能耗下降",
+        "value": "22%"
+      }
+    ],
+    "body": "<p>采集网关对冷机、CRAH、UPS 与列头柜进行全链路能耗与温湿度采集，构建覆盖每个机柜的能效数字孪生。</p><p>通过 3D 气流仿真定位局部热点与冷量浪费，动态优化送风温度与水泵频率，在保障 SLA 前提下持续压降 PUE。</p>"
+  },
+  {
+    "slug": "factory-energy-monitoring",
+    "title": "高耗能工厂 3D 能效监测数字孪生",
+    "industry": "高耗能工厂",
+    "summary": "面向冶金、化工、<br/>水泥等高耗能行业的产线级能耗采集与工艺能效数字孪生，实现单位产品能耗可视、可控、可优化。",
+    "twinCapabilities": [
+      "产线 3D 能效监测",
+      "工序级能耗对标",
+      "动态能耗热力图",
+      "负荷预测算法"
+    ],
+    "supportedProtocols": [
+      "Modbus-RTU",
+      "Modbus-TCP",
+      "MQTT",
+      "OPC UA"
+    ],
+    "architectureImage": "/uploads/screenshot-2026-04-21-103257.png",
+    "roi": [
+      {
+        "label": "单位产品能耗下降",
+        "value": "12%"
+      },
+      {
+        "label": "异常能耗响应提速",
+        "value": "6x"
+      },
+      {
+        "label": "投资回收周期",
+        "value": "18 个月"
+      }
+    ],
+    "body": "<p>通过串口服务器与边缘计算采集网关接入产线仪表、变频器与智能电表，实现工序级能耗数据的毫秒级采集与本地汇聚。</p><p>构建产线 3D 能效数字孪生，将能耗热力图叠加至设备模型，快速定位高耗能工序并进行跨产线对标优化。</p>"
+  }
+]

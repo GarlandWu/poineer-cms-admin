@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-navy-deep text-slate-100 antialiased;
+  /* 为移动端底部常驻导航预留安全区 */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 富文本正文渲染（CMS lexical 导出的 HTML） */
+.richtext {
+  @apply text-sm leading-relaxed text-slate-300 md:text-base;
+}
+.richtext > * + * {
+  @apply mt-4;
+}
+.richtext h1,
+.richtext h2,
+.richtext h3 {
+  @apply font-bold text-white;
+}
+.richtext h1 { @apply text-2xl; }
+.richtext h2 { @apply text-xl; }
+.richtext h3 { @apply text-lg; }
+.richtext strong { @apply font-semibold text-white; }
+.richtext em { @apply italic; }
+.richtext a { @apply text-electric underline underline-offset-2 hover:text-energy; }
+.richtext ul { @apply list-disc space-y-1 pl-5; }
+.richtext ol { @apply list-decimal space-y-1 pl-5; }
+.richtext blockquote {
+  @apply border-l-2 border-electric/50 pl-4 italic text-slate-400;
+}
+
+/* 工业科技感网格背景 */
+.tech-grid {
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

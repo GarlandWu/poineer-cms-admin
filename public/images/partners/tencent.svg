@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="腾讯云">
+    <rect width="200" height="80" rx="10" fill="#0f2f4d"/>
+    <circle cx="34" cy="40" r="16" fill="none" stroke="#22c55e" stroke-width="3"/>
+    <text x="120" y="46" fill="#e2e8f0" font-family="system-ui,sans-serif" font-size="18" font-weight="600" text-anchor="middle">腾讯云</text>
+  </svg>

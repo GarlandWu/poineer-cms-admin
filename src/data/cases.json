@@ -1,0 +1,65 @@
+[
+  {
+    "slug": "case-industrial-park",
+    "clientName": "长三角某国家级产业园区",
+    "industry": "智慧园区",
+    "summary": "全园区 320 栋楼宇接入水电气冷热采集，构建零碳数字孪生大屏，年度综合能耗下降 18%。",
+    "metrics": [
+      {
+        "label": "综合节能率",
+        "value": "18%"
+      },
+      {
+        "label": "数据采集延迟",
+        "value": "< 50ms"
+      },
+      {
+        "label": "投资回收周期",
+        "value": "14 个月"
+      }
+    ],
+    "twinScreenshot": "/images/cases/park-twin.svg"
+  },
+  {
+    "slug": "case-datacenter",
+    "clientName": "华南某 Tier III 数据中心",
+    "industry": "数据中心",
+    "summary": "制冷与配电全链路采集 + PUE 数字孪生仿真，PUE 由 1.55 降至 1.32，年省电费约 480 万元。",
+    "metrics": [
+      {
+        "label": "PUE 降低",
+        "value": "1.55 → 1.32"
+      },
+      {
+        "label": "年度电费节省",
+        "value": "¥ 480 万"
+      },
+      {
+        "label": "制冷能耗下降",
+        "value": "22%"
+      }
+    ],
+    "twinScreenshot": "/images/cases/datacenter-twin.svg"
+  },
+  {
+    "slug": "case-steel-plant",
+    "clientName": "华北某大型钢铁集团",
+    "industry": "高耗能工厂",
+    "summary": "轧钢产线工序级能耗采集与 3D 能效数字孪生，单位产品能耗下降 12%，异常响应提速 6 倍。",
+    "metrics": [
+      {
+        "label": "单位产品能耗",
+        "value": "-12%"
+      },
+      {
+        "label": "异常响应提速",
+        "value": "6x"
+      },
+      {
+        "label": "采集点位",
+        "value": "12,000+"
+      }
+    ],
+    "twinScreenshot": "/images/cases/steel-twin.svg"
+  }
+]

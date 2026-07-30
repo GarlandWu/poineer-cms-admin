@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="施耐德电气">
+    <rect width="200" height="80" rx="10" fill="#f0f9ff"/>
+    <circle cx="34" cy="40" r="16" fill="none" stroke="#2563eb" stroke-width="3"/>
+    <text x="120" y="46" fill="#0a1f33" font-family="system-ui,sans-serif" font-size="18" font-weight="600" text-anchor="middle">施耐德电气</text>
+  </svg>

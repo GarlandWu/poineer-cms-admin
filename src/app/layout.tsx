@@ -32,6 +32,23 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
+      <head>
+        {/* 防止深色/浅色主题切换时白屏闪烁（FOUC），在 CSS 加载前应用 theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                const theme = localStorage.getItem('theme') || 'light';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <Header />
         <main className="min-h-screen pb-16 lg:pb-0">{children}</main>

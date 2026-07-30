@@ -14,10 +14,12 @@ export default function PartnersPage() {
       <SectionHeading eyebrow="Partners" title="合作伙伴" desc="与云平台、静态托管、配电设备与工业自动化领先厂商共建能源数字化生态。" />
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {partners.map((p) => (
-          <div key={p.name} className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-navy p-6 text-center">
+          <div key={p.name} className="glass-card glow-border p-6 flex flex-col items-center justify-center text-center card-gradient-electric hover:scale-105 transition-transform">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.logo} alt={p.name} className="h-16 w-auto object-contain" loading="lazy" />
-            <span className="mt-2 text-xs text-slate-500">{p.category}</span>
+            <img src={p.logo.replace(/\.svg$/, '-light.svg')} alt={p.name} className="h-16 w-auto object-contain dark:hidden" loading="lazy" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.logo} alt={p.name} className="hidden h-16 w-auto object-contain dark:block" loading="lazy" />
+            <span className="mt-2 text-xs text-slate-600 dark:text-slate-400">{p.category}</span>
           </div>
         ))}
       </div>

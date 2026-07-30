@@ -31,12 +31,14 @@ export default function NewsDetailPage({ params }: { params: { slug: string } })
         <ArrowLeft className="h-4 w-4" /> 返回列表
       </Link>
       <div className="mt-4 flex items-center gap-3 text-xs">
-        <span className="rounded-md bg-white/5 px-2 py-1 text-electric-light">{n.category}</span>
-        <time className="text-slate-500">{formatDate(n.publishedAt)}</time>
+        <span className="rounded-md bg-electric/10 px-2 py-1 text-electric-light font-semibold">{n.category}</span>
+        <time className="text-slate-600 dark:text-slate-400">{formatDate(n.publishedAt)}</time>
       </div>
-      <h1 className="mt-3 text-2xl font-bold leading-tight text-white md:text-4xl">{n.title}</h1>
+      <h1 className="mt-3 text-2xl font-bold leading-tight bg-gradient-to-r from-navy-deep to-electric text-transparent bg-clip-text dark:from-white dark:to-energy md:text-4xl">{n.title}</h1>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={n.cover} alt={n.title} className="mt-6 aspect-video w-full rounded-2xl border border-white/10 bg-navy object-cover" loading="lazy" />
+      <img src={n.cover.replace(/\.svg$/, '-light.svg')} alt={n.title} className="mt-6 aspect-video w-full rounded-2xl border border-electric/20 dark:border-energy/30 dark:hidden object-cover" loading="lazy" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={n.cover} alt={n.title} className="hidden mt-6 aspect-video w-full rounded-2xl border border-electric/20 dark:border-energy/30 dark:block object-cover" loading="lazy" />
       <article className="richtext mt-8" dangerouslySetInnerHTML={{ __html: n.body }} />
     </Section>
   );

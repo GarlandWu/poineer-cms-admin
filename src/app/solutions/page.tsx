@@ -16,14 +16,14 @@ export default function SolutionsPage() {
     <Section>
       <SectionHeading eyebrow="Solutions" title="数字孪生解决方案" desc="面向不同行业场景的能源采集与数字孪生方案，均支持全协议接入与 ROI 量化交付。" />
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {solutions.map((s) => (
-          <Link key={s.slug} href={`/solutions/${s.slug}/`} className="group flex flex-col rounded-2xl border border-white/10 bg-navy p-6 transition-colors hover:border-electric/50">
-            <span className="text-xs font-medium text-electric-light">{s.industry}</span>
-            <h2 className="mt-2 text-lg font-semibold text-white group-hover:text-energy">{s.title}</h2>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-400">{s.summary}</p>
+        {solutions.map((s, idx) => (
+          <Link key={s.slug} href={`/solutions/${s.slug}/`} className={`group glass-card glow-border p-6 flex flex-col relative overflow-hidden ${['card-gradient-energy', 'card-gradient-electric', 'card-gradient-cyber'][idx % 3]}`}>
+            <span className="text-xs font-medium text-electric dark:text-electric-light">{s.industry}</span>
+            <h2 className="mt-2 text-lg font-semibold text-navy-deep dark:text-white group-hover:text-energy transition-colors">{s.title}</h2>
+            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{s.summary}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {s.twinCapabilities.slice(0, 3).map((c) => (
-                <span key={c} className="rounded-md bg-white/5 px-2 py-1 text-xs text-slate-300">{c}</span>
+                <span key={c} className="rounded-md bg-electric/10 dark:bg-energy/15 px-2 py-1 text-xs text-slate-700 dark:text-slate-300 font-medium">{c}</span>
               ))}
             </div>
             <div className="mt-4"><ProtocolTagList protocols={s.supportedProtocols.slice(0, 3)} /></div>

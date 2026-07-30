@@ -4,10 +4,12 @@
   "private": true,
   "description": "能源数据采集与数字孪生系统企业门户 — Next.js SSG",
   "scripts": {
-    "dev": "next dev",
-    "build": "cd ./cms && npm run export && cd ../ && next build",
-    "start": "npx serve@latest out", 
+    "dev": "next dev",    
+    "build": "node scripts/build.js",
     "preview": "npx --yes serve out -l 5000",
+    "start": "npx serve@latest out",
+    "deploy": "next build",
+    "publish": "node scripts/publish.js",
     "lint": "next lint"
   },
   "dependencies": {

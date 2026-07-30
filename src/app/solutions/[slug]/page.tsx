@@ -29,11 +29,11 @@ export default function SolutionDetailPage({ params }: { params: { slug: string 
 
   return (
     <>
-      <section className="border-b border-white/10 bg-navy">
+      <section className="border-b border-electric/10 dark:border-energy/20">
         <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
           <span className="text-sm font-medium text-electric-light">{s.industry}</span>
-          <h1 className="mt-2 text-2xl font-bold text-white md:text-4xl">{s.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-300">{s.summary}</p>
+          <h1 className="mt-2 text-2xl font-bold bg-gradient-to-r from-navy-deep to-electric text-transparent bg-clip-text dark:from-white dark:to-energy md:text-4xl">{s.title}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-700 dark:text-slate-300">{s.summary}</p>
           <div className="mt-6"><DemoCTA /></div>
         </div>
       </section>
@@ -42,20 +42,22 @@ export default function SolutionDetailPage({ params }: { params: { slug: string 
         <div className="space-y-10 lg:col-span-2">
           {/* 架构拓扑图 */}
           <div>
-            <h2 className="mb-4 text-xl font-bold text-white">架构拓扑</h2>
+            <h2 className="mb-4 text-xl font-bold text-navy-deep dark:text-white">架构拓扑</h2>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={s.architectureImage} alt={`${s.title}架构拓扑图`} className="w-full rounded-2xl border border-white/10 bg-navy-deep" loading="lazy" />
+            <img src={s.architectureImage.replace(/\.svg$/, '-light.svg')} alt={`${s.title}架构拓扑图`} className="w-full rounded-2xl border border-electric/20 dark:border-energy/30 dark:hidden" loading="lazy" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={s.architectureImage} alt={`${s.title}架构拓扑图`} className="hidden w-full rounded-2xl border border-electric/20 dark:border-energy/30 dark:block" loading="lazy" />
           </div>
 
           {/* 正文 */}
           <div>
-            <h2 className="mb-4 text-xl font-bold text-white">方案说明</h2>
+            <h2 className="mb-4 text-xl font-bold text-navy-deep dark:text-white">方案说明</h2>
             <div className="richtext" dangerouslySetInnerHTML={{ __html: s.body }} />
           </div>
 
           {/* 数字孪生能力 */}
           <div>
-            <h2 className="mb-4 text-xl font-bold text-white">数字孪生功能</h2>
+            <h2 className="mb-4 text-xl font-bold text-navy-deep dark:text-white">数字孪生功能</h2>
             <div className="flex flex-wrap gap-2">
               {s.twinCapabilities.map((c) => (
                 <span key={c} className="rounded-lg border border-energy/30 bg-energy/10 px-3 py-1.5 text-sm text-energy">{c}</span>
@@ -65,26 +67,26 @@ export default function SolutionDetailPage({ params }: { params: { slug: string 
 
           {/* 支持协议 */}
           <div>
-            <h2 className="mb-4 text-xl font-bold text-white">支持采集协议</h2>
+            <h2 className="mb-4 text-xl font-bold text-navy-deep dark:text-white">支持采集协议</h2>
             <ProtocolTagList protocols={s.supportedProtocols} />
           </div>
         </div>
 
         {/* 侧栏：ROI + 预约表单 */}
         <aside className="space-y-6">
-          <div className="rounded-2xl border border-white/10 bg-navy p-6">
-            <h3 className="text-sm font-semibold text-white">客户 ROI 量化</h3>
+          <div className="glass-card glow-border p-6">
+            <h3 className="text-sm font-semibold text-navy-deep dark:text-white">客户 ROI 量化</h3>
             <dl className="mt-4 space-y-4">
               {s.roi.map((r) => (
                 <div key={r.label} className="flex items-baseline justify-between border-b border-white/5 pb-3">
                   <dt className="text-sm text-slate-400">{r.label}</dt>
-                  <dd className="text-xl font-bold text-energy">{r.value}</dd>
+                  <dd className="text-xl font-bold text-glow-energy">{r.value}</dd>
                 </div>
               ))}
             </dl>
           </div>
-          <div id="demo" className="rounded-2xl border border-white/10 bg-navy p-6">
-            <h3 className="mb-4 text-sm font-semibold text-white">预约 3D 演示</h3>
+          <div id="demo" className="glass-card glow-border p-6">
+            <h3 className="mb-4 text-sm font-semibold text-navy-deep dark:text-white">预约 3D 演示</h3>
             <DemoForm />
           </div>
         </aside>

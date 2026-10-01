@@ -31,5 +31,5 @@ export default buildConfig({
   db: sqliteAdapter({
     client: { url: process.env.DATABASE_URI || 'file:./energy-portal.db' },
   }),
-  // 上传文件直接落盘到主站 public/uploads（见 Media 集合），随 SSG 构建打包
+  // 上传目录由桌面端配置为可写路径，构建时会随静态站一并发布
 });

@@ -1,7 +1,7 @@
 # 能源门户管理系统 — Electron 桌面端使用指南
 
-面向运营人员的桌面壳：**默认自动启动 CMS**，并提供「构建 / 预览门户 / 一键发布主站」三个按钮。
-CMS 只在本机运行，不会发布到服务器；发布出去的只有 `out/` 静态产物。
+面向运营人员的桌面工作台：**默认自动启动随 EXE 打包的 CMS 后台**，并提供「构建门户 / 本地预览 / 构建并发布」操作。
+CMS 和 SQLite 数据只在本机运行；发布出去的只有 `out/` 静态产物。
 
 ## 一、组成
 
@@ -9,18 +9,17 @@ CMS 只在本机运行，不会发布到服务器；发布出去的只有 `out/`
 electron/main.js       主进程：进程管理、端口探测、IPC
 electron/preload.js    contextBridge 安全桥接（无 nodeIntegration）
 electron-ui/           管理面板（原生 HTML/CSS/JS，无构建步骤）
-dist/EnergyPortalManager.exe   打包产物（portable 单文件，约 72MB）
+dist/EnergyPortalManager.exe   打包产物（portable 单文件）
 ```
 
-exe 内**只包含 Electron 运行时和管理面板**，不包含项目源码与 `node_modules`。
-它是一个「驱动器」：操作放在磁盘上的项目目录，因此机器上仍需 **Node.js ≥ 20 与 Git**
-（`next build`、`git push` 都要用到）。
+EXE 携带 Electron 运行时、CMS standalone 服务和后台界面。CMS 数据库保存在 `%APPDATA%/EnergyPortalManager/cms/`；选择项目目录后，上传媒体写入该项目的 `public/uploads/`，未选择时写入用户数据目录。
+构建和发布门户仍需一个项目目录，以及 **Node.js ≥ 20 与 Git**；这些依赖不影响直接启动 CMS 后台。
 
 ## 二、面板功能
 
 | 区域 | 行为 | 实际执行 |
 | --- | --- | --- |
-| CMS | **应用启动即自动运行**，可停止/重启；支持「在应用内打开 CMS」新窗口，无需浏览器 | `cms/` 内 `npm run dev`（端口 3001，`/admin`） |
+| CMS | **应用启动即自动运行**，可停止/重启；支持「打开管理后台」 | EXE 内的 Next standalone 服务（端口 3001，`/admin`） |
 | 构建 | 导出 CMS 数据 → 生成静态站 | `cms: npm run export` → `next build` |
 | 门户预览 | 本地起静态服务并可打开 `out/` 目录 | `npx --yes serve@latest out -l 5000` |
 | 一键发布 | 二次确认后执行完整发布流水线 | `node scripts/publish.js`（构建 → 清理 submodule → 复制产物 → git 提交推送） |
@@ -44,8 +43,8 @@ exe 内**只包含 Electron 运行时和管理面板**，不包含项目源码�
 
 ```bash
 npm install
-npm run electron        # 本地起桌面壳（自动拉起 CMS）
-npm run electron-build  # 打包 → dist/EnergyPortalManager.exe
+npm run electron        # 本地开发桌面壳（使用 cms/ 开发服务）
+npm run electron-build  # 构建 CMS standalone 并打包 → dist/EnergyPortalManager.exe
 ```
 
 ### 打包踩坑：winCodeSign 解压失败
@@ -68,12 +67,13 @@ rm "$CACHE/wcs.7z"
 
 ## 五、运营人员标准操作流程
 
-1. 双击 `EnergyPortalManager.exe`，等 CMS 状态变为「运行中」
-2. 点「在应用内打开 CMS」→ 编辑内容并保存
-3. 点「构建」→ 点「启动预览」→ 打开 `localhost:5000` 核对效果
-4. 确认无误 → 点「执行发布」→ 日志出现「发布完成」即上线
+1. 双击 `EnergyPortalManager.exe`，后台会自动启动并打开 CMS
+2. 编辑并保存内容；项目目录会自动定位，也可以手动选择
+3. 点「构建门户」→ 点「启动预览」→ 核对本地站点
+4. 确认无误 → 点「构建并发布」→ 日志显示发布完成
 
 常见提示：
 - *端口 3001/5000 已被占用* — 关掉此前残留的 `node.exe` 或已在跑的开发服务
-- *未找到 out/ 产物目录* — 先执行「构建」
+- *没有可用项目目录* — 选择包含 `cms/` 和 `scripts/publish.js` 的项目目录
+- *未找到 out/ 产物目录* — 先执行「构建门户」
 - *发布失败* — 多为 Git 凭据或网络问题，日志中会带上 git 的原始报错

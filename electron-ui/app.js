@@ -65,15 +65,15 @@ rootChangeBtn.addEventListener('click', async () => {
   logManagers.cms.add(result.message, result.success ? 'success' : 'error');
   if (result.success) {
     rootPathEl.textContent = result.projectRoot;
-    updateCmsStatus(false);
-    updatePreviewStatus(false);
+    setProjectAvailable(true);
   }
 });
 
 window.electron.app.onRootMissing(() => {
   rootPathEl.textContent = '未找到项目目录';
-  logManagers.cms.add('未找到项目根目录，请点击右上角「更改目录」选择包含 cms/ 的项目根目录', 'error');
-  setBusy(true);
+  setProjectAvailable(false);
+  logManagers.build.add('请选择包含 cms/ 与 scripts/ 的项目目录以构建门户', 'error');
+  logManagers.publish.add('请选择项目目录以启用发布', 'error');
 });
 
 // CMS 控制
@@ -191,7 +191,7 @@ window.electron.publish.onLog((data) => logManagers.publish.add(data, 'info'));
 
 // 状态更新
 function updateCmsStatus(running) {
-  cmsBadge.textContent = running ? '运行中' : '未运行';
+  cmsBadge.lastElementChild.textContent = running ? '运行中' : '未运行';
   cmsBadge.classList.toggle('running', running);
   cmsStartBtn.disabled = running;
   cmsStopBtn.disabled = !running;
@@ -200,18 +200,19 @@ function updateCmsStatus(running) {
 }
 
 function updatePreviewStatus(running) {
-  previewBadge.textContent = running ? '运行中' : '未运行';
-  previewBadge.classList.toggle('running', running);
   previewStartBtn.disabled = running;
   previewStopBtn.disabled = !running;
   previewOpenLink.style.display = running ? 'inline-flex' : 'none';
   previewFolderLink.style.display = running ? 'inline-flex' : 'none';
+  document.getElementById('preview-detail').textContent = running
+    ? '预览服务运行中 · localhost:5000'
+    : '构建完成后检查站点';
 }
 
-/** 项目目录缺失时禁用所有操作按钮 */
-function setBusy(disabled) {
-  [cmsStartBtn, cmsStopBtn, buildBtn, previewStartBtn, previewStopBtn, publishBtn].forEach((btn) => {
-    btn.disabled = disabled;
+function setProjectAvailable(available) {
+  document.getElementById('project-state').textContent = available ? '项目已连接' : '等待工作目录';
+  [buildBtn, previewStartBtn, publishBtn].forEach((button) => {
+    button.disabled = !available;
   });
 }
 
@@ -226,6 +227,7 @@ async function init() {
 
   const status = await window.electron.app.getStatus();
   rootPathEl.textContent = status.projectRoot || '未找到项目目录';
+  setProjectAvailable(Boolean(status.projectRoot));
   updateCmsStatus(status.cmsRunning);
   updatePreviewStatus(status.previewRunning);
 }

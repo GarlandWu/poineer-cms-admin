@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 // 上传目标：主站 public/uploads —— 构建期随 SSG 一并打包，线上以 /uploads/<文件名> 访问
-const staticDir = path.resolve(dirname, '../../../public/uploads');
+const staticDir = process.env.PORTAL_UPLOAD_DIR || path.resolve(dirname, '../../../public/uploads');
 
 // MIME → 扩展名，用于给缺后缀的上传文件自动补全
 const MIME_EXT: Record<string, string> = {

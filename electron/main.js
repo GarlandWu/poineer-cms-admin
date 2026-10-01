@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
+const crypto = require('crypto');
+const { pathToFileURL } = require('url');
 const { spawn, execFile } = require('child_process');
 
 const CMS_PORT = 3001;
@@ -38,6 +40,27 @@ const writeConfig = (patch) => {
   } catch (error) {
     console.error('写入配置失败:', error.message);
   }
+};
+
+const getCmsEnvironment = () => {
+  const dataDir = path.join(app.getPath('userData'), 'cms');
+  const uploadDir = projectRoot
+    ? path.join(projectRoot, 'public', 'uploads')
+    : path.join(dataDir, 'uploads');
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.mkdirSync(uploadDir, { recursive: true });
+
+  const config = readConfig();
+  const payloadSecret = config.payloadSecret || crypto.randomBytes(32).toString('hex');
+  if (!config.payloadSecret) writeConfig({ payloadSecret });
+
+  return {
+    DATABASE_URI: pathToFileURL(path.join(dataDir, 'energy-portal.db')).href,
+    PAYLOAD_SECRET: payloadSecret,
+    PORTAL_UPLOAD_DIR: uploadDir,
+    HOSTNAME: '127.0.0.1',
+    PORT: String(CMS_PORT),
+  };
 };
 
 // ------------------------------------------------------------ 项目根目录解析
@@ -107,12 +130,12 @@ const killTree = (child) =>
 
 /** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${id}-log` 频道 */
 /** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${logId}-log` 频道 */
-const spawnLogged = (id, command, args, cwd, logId = id) => {
+const spawnLogged = (id, command, args, cwd, logId = id, env = process.env) => {
   const child = spawn(command, args, {
     cwd,
-    shell: true,
+    shell: command !== process.execPath,
     windowsHide: true,
-    env: { ...process.env, FORCE_COLOR: '0' },
+    env: { ...env, FORCE_COLOR: '0' },
   });
 
   const pump = (stream) => {
@@ -132,11 +155,11 @@ const spawnLogged = (id, command, args, cwd, logId = id) => {
 };
 
 /** 一次性任务：跑完即返回结果 */
-const runTask = (id, command, args, cwd, logId = id) =>
+const runTask = (id, command, args, cwd, logId = id, env = process.env) =>
   new Promise((resolve) => {
     if (tasks[id]) return resolve({ success: false, message: '该任务正在执行中' });
 
-    const child = spawnLogged(id, command, args, cwd, logId);
+    const child = spawnLogged(id, command, args, cwd, logId, env);
     tasks[id] = child;
 
     child.on('error', (error) => {
@@ -156,15 +179,17 @@ const runTask = (id, command, args, cwd, logId = id) =>
   });
 
 /** 长驻服务：轮询端口确认真的起来了，而不是死等固定秒数 */
-const startService = async (id, command, args, cwd, port, readyMessage) => {
+const startService = async (id, command, args, cwd, port, readyMessage, env = process.env) => {
   if (services[id]) return { success: false, message: '服务已在运行' };
-  if (!projectRoot) return { success: false, message: '未设置项目根目录' };
+  if (!projectRoot && !(id === 'cms' && app.isPackaged)) {
+    return { success: false, message: '未设置项目根目录' };
+  }
 
   if (await isPortInUse(port)) {
     return { success: false, message: `端口 ${port} 已被占用，请先关闭占用该端口的程序` };
   }
 
-  const child = spawnLogged(id, command, args, cwd);
+  const child = spawnLogged(id, command, args, cwd, id, env);
   services[id] = child;
 
   child.on('error', (error) => {
@@ -203,23 +228,40 @@ const stopService = async (id) => {
 // ------------------------------------------------------------ CMS 启动流程
 
 /**
- * 启动 CMS：安装依赖 → 生成 importmap → 启动 dev 服务。
- * npm install 与 generate:importmap 均在 cms/ 子目录中执行。
+ * 打包版使用随 EXE 携带的 standalone 服务；开发版继续使用本地 Next dev。
  */
 const startCms = async () => {
-  if (!projectRoot) return { success: false, message: '未设置项目根目录' };
   if (services.cms) return { success: false, message: 'CMS 已在运行' };
 
-  const cmsDir = path.join(projectRoot, 'cms');
+  if (!app.isPackaged && !projectRoot) return { success: false, message: '未设置项目根目录' };
+  const cmsDir = app.isPackaged
+    ? path.join(process.resourcesPath, 'cms')
+    : path.join(projectRoot, 'cms');
+  const cmsEnvironment = { ...process.env, ...getCmsEnvironment() };
 
-  if (!fs.existsSync(path.join(cmsDir, 'node_modules'))) { 
+  if (app.isPackaged) {
+    const serverFile = path.join(cmsDir, 'server.js');
+    if (!fs.existsSync(serverFile)) {
+      return { success: false, message: '未找到随 EXE 打包的 CMS 服务，请重新构建 EXE' };
+    }
+    return startService(
+      'cms',
+      process.execPath,
+      [serverFile],
+      cmsDir,
+      CMS_PORT,
+      `CMS 已启动：http://localhost:${CMS_PORT}/admin`,
+      { ...cmsEnvironment, ELECTRON_RUN_AS_NODE: '1' }
+    );
+  }
+
+  if (!fs.existsSync(path.join(cmsDir, 'node_modules'))) {
     send('cms-log', '[1/3] 安装依赖 (npm install) ...');
     const installed = await runTask('cms-setup', 'npm', ['install'], cmsDir, 'cms');
     if (!installed.success) {
       return { success: false, message: `依赖安装失败：${installed.message}` };
     } 
   }
-  
 
   send('cms-log', '[2/3] 生成 importmap (npm run generate:importmap) ...');
   const generated = await runTask('cms-setup', 'npm', ['run', 'generate:importmap'], cmsDir, 'cms');
@@ -234,7 +276,8 @@ const startCms = async () => {
     ['run', 'dev'],
     cmsDir,
     CMS_PORT,
-    `CMS 已启动：http://localhost:${CMS_PORT}/admin`
+    `CMS 已启动：http://localhost:${CMS_PORT}/admin`,
+    cmsEnvironment
   );
 };
 
@@ -315,11 +358,17 @@ const openCmsWindow = () => {
     height: 900,
     title: '内容管理后台 (CMS)',
     backgroundColor: '#ffffff',
+    show: false,
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
   cmsWindow.loadURL(`http://localhost:${CMS_PORT}/admin`);
+  cmsWindow.once('ready-to-show', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
+    cmsWindow.show();
+  });
   cmsWindow.on('closed', () => {
     cmsWindow = null;
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
   });
 };
 
@@ -332,15 +381,14 @@ app.whenReady().then(() => {
   createWindow();
 
     mainWindow.webContents.once('did-finish-load', async () => {
-    if (!projectRoot) {
-      send('root-missing');
-      return;
-    }
-    // 默认行为：应用启动即拉起 CMS
+      if (!projectRoot) send('root-missing');
     send('cms-log', '正在自动启动 CMS ...');
     const result = await startCms();
     send('cms-log', result.message);
-    if (result.success) send('cms-started');
+      if (result.success) {
+        send('cms-started');
+        openCmsWindow();
+      }
   });
 });
 
@@ -364,9 +412,17 @@ app.on('activate', () => {
 
 // ------------------------------------------------------------------- IPC
 
-ipcMain.handle('start-cms', () => startCms());
+ipcMain.handle('start-cms', async () => {
+  const result = await startCms();
+  if (result.success) openCmsWindow();
+  return result;
+});
 
-ipcMain.handle('stop-cms', () => stopService('cms'));
+ipcMain.handle('stop-cms', async () => {
+  const result = await stopService('cms');
+  if (cmsWindow && !cmsWindow.isDestroyed()) cmsWindow.close();
+  return result;
+});
 
 ipcMain.handle('open-cms-window', () => {
   if (!services.cms) return { success: false, message: 'CMS 未在运行，请先启动' };
@@ -383,11 +439,26 @@ ipcMain.handle('build', async () => {
   if (!projectRoot) return { success: false, message: '未设置项目根目录' };
 
   send('build-log', '[1/2] 导出 CMS 数据 (cms: npm run export) ...');
-  const exported = await runTask('build', 'npm', ['run', 'export'], path.join(projectRoot, 'cms'));
+  const cmsEnvironment = { ...process.env, ...getCmsEnvironment() };
+  const exported = await runTask(
+    'build',
+    'npm',
+    ['run', 'export'],
+    path.join(projectRoot, 'cms'),
+    'build',
+    cmsEnvironment
+  );
   if (!exported.success) return { success: false, message: `CMS 数据导出失败：${exported.message}` };
 
   send('build-log', '[2/2] 构建主站 (next build) ...');
-  const built = await runTask('build', 'npx', ['--no-install', 'next', 'build'], projectRoot);
+  const built = await runTask(
+    'build',
+    'npx',
+    ['--no-install', 'next', 'build'],
+    projectRoot,
+    'build',
+    cmsEnvironment
+  );
   if (!built.success) return { success: false, message: `主站构建失败：${built.message}` };
 
   send('build-log', '构建完成，产物位于 out/');
@@ -397,7 +468,14 @@ ipcMain.handle('build', async () => {
 // 一键发布：构建 → 清理 submodule → 复制产物 → git 提交推送
 ipcMain.handle('publish', () => {
   if (!projectRoot) return { success: false, message: '未设置项目根目录' };
-  return runTask('publish', 'node', ['scripts/publish.js'], projectRoot);
+  return runTask(
+    'publish',
+    'node',
+    ['scripts/publish.js'],
+    projectRoot,
+    'publish',
+    { ...process.env, ...getCmsEnvironment() }
+  );
 });
 
 ipcMain.handle('open-url', async (_event, url) => {
@@ -436,10 +514,14 @@ ipcMain.handle('choose-root', async () => {
     return { success: false, message: '该目录不是有效的项目根目录' };
   }
 
+  const restartCms = Boolean(services.cms);
   await stopAll();
   projectRoot = filePaths[0];
   writeConfig({ projectRoot });
-  send('cms-stopped');
-  send('preview-stopped');
+  if (restartCms) {
+    const restarted = await startCms();
+    if (restarted.success) send('cms-started');
+    else send('cms-log', restarted.message);
+  }
   return { success: true, message: `项目目录已设置为 ${projectRoot}`, projectRoot };
 });

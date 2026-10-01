@@ -16,7 +16,7 @@
     "app:build": "pkg app-manager.js --output dist/EnergyPortalManager.exe --targets win-x64 --node-range 20",
     "electron": "electron electron/main.js",
     "electron-dev": "electron electron/main.js",
-    "electron-build": "electron-builder --win portable"
+    "electron-build": "npm run build --prefix cms && electron-builder --win portable"
   },
   "main": "electron/main.js",
   "homepage": "./",
@@ -78,7 +78,18 @@
       "package.json",
       "!node_modules/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "cms/.next/standalone",
+        "to": "cms"
+      },
+      {
+        "from": "cms/.next/static",
+        "to": "cms/.next/static"
+      }
+    ],
     "win": {
+      "signAndEditExecutable": false,
       "target": [
         {
           "target": "portable",

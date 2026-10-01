@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="3D 工业能源数字孪生">
+  <defs>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e27"/>
+      <stop offset="50%" stop-color="#1a2f5a"/>
+      <stop offset="100%" stop-color="#0f2a4a"/>
+    </linearGradient>
+    <filter id="cyberGlow">
+      <feGaussianBlur stdDeviation="3"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.9"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+    <radialGradient id="corePulse" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#00d9ff" stop-opacity="0.6"/>
+      <stop offset="70%" stop-color="#22c55e" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1600" height="900" fill="url(#darkBg)"/>
+
+  <!-- 背景网络线条 -->
+  <g opacity="0.08" stroke="#00d9ff">
+    <line x1="0" y1="450" x2="1600" y2="450" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="900" stroke-width="1"/>
+    <circle cx="800" cy="450" r="300" fill="none" stroke-width="0.5"/>
+  </g>
+
+  <!-- 左侧：能源采集设备群 -->
+  <!-- 太阳能板 1 -->
+  <g opacity="0.9">
+    <polygon points="150,250 230,200 280,240 200,290" fill="#0f3a52" stroke="#00d9ff" stroke-width="2" filter="url(#cyberGlow)"/>
+    <line x1="150" y1="250" x2="230" y2="200" stroke="#22c55e" stroke-width="1" opacity="0.6"/>
+    <line x1="200" y1="220" x2="240" y2="245" stroke="#22c55e" stroke-width="1" opacity="0.4"/>
+    <circle cx="165" cy="235" r="3" fill="#22c55e" filter="url(#strongGlow)"/>
+  </g>
+
+  <!-- 太阳能板 2 -->
+  <g opacity="0.85">
+    <polygon points="100,350 160,310 200,350 140,390" fill="#1a4d6d" stroke="#00d9ff" stroke-width="2.5" filter="url(#cyberGlow)"/>
+    <circle cx="130" cy="350" r="2.5" fill="#22c55e" filter="url(#strongGlow)"/>
+  </g>
+
+  <!-- 风力发电机 1 -->
+  <g opacity="0.9">
+    <line x1="280" y1="150" x2="280" y2="380" stroke="#0ea5e9" stroke-width="4" opacity="0.7"/>
+    <circle cx="280" cy="130" r="45" fill="none" stroke="#00d9ff" stroke-width="2.5" filter="url(#cyberGlow)"/>
+    <path d="M 280 85 L 310 140 L 250 140 Z" fill="#22c55e" opacity="0.8"/>
+    <path d="M 280 85 L 295 125 L 265 125 Z" fill="#00d9ff" opacity="0.6"/>
+    <circle cx="280" cy="255" r="4" fill="#22c55e" opacity="0.7"/>
+  </g>
+
+  <!-- 风力发电机 2 -->
+  <g opacity="0.8">
+    <line x1="80" y1="220" x2="80" y2="420" stroke="#0ea5e9" stroke-width="3.5" opacity="0.6"/>
+    <circle cx="80" cy="200" r="35" fill="none" stroke="#22c55e" stroke-width="2" filter="url(#cyberGlow)"/>
+  </g>
+
+  <!-- 中心：主要工业园区设施 -->
+  <!-- 主建筑复合体 -->
+  <g opacity="0.95">
+    <!-- 底座平台 -->
+    <polygon points="450,380 850,340 950,480 550,520" fill="#0a1929" stroke="#00d9ff" stroke-width="3" filter="url(#cyberGlow)"/>
+
+    <!-- 主楼左侧 -->
+    <polygon points="500,300 500,520 650,540 650,320" fill="#0f3a52" stroke="#00d9ff" stroke-width="2.5"/>
+
+    <!-- 主楼右侧 -->
+    <polygon points="650,320 650,540 800,520 800,300" fill="#1a4d6d" stroke="#22c55e" stroke-width="2.5"/>
+
+    <!-- 高耸建筑 -->
+    <polygon points="800,300 800,200 850,180 850,320" fill="#0a2847" stroke="#00d9ff" stroke-width="2"/>
+
+    <!-- 冷却塔群 -->
+    <g>
+      <polygon points="720,280 740,260 760,280 740,300" fill="#1a4d6d" stroke="#22c55e" stroke-width="1.5"/>
+      <polygon points="770,290 790,270 810,290 790,310" fill="#1a4d6d" stroke="#22c55e" stroke-width="1.5"/>
+      <polygon points="820,285 840,265 860,285 840,305" fill="#1a4d6d" stroke="#22c55e" stroke-width="1.5"/>
+    </g>
+
+    <!-- 烟囱 -->
+    <rect x="730" y="140" width="45" height="160" fill="#0f3a52" stroke="#00d9ff" stroke-width="2"/>
+    <ellipse cx="752.5" cy="135" rx="25" ry="10" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.5"/>
+    <path d="M 735 115 Q 752 95 770 115" fill="none" stroke="#00d9ff" stroke-width="1"/>
+
+    <!-- 配电设备 -->
+    <rect x="860" y="360" width="35" height="55" fill="#0a1929" stroke="#22c55e" stroke-width="2"/>
+    <circle cx="877.5" cy="370" r="3" fill="#22c55e" filter="url(#strongGlow)"/>
+    <circle cx="877.5" cy="390" r="3" fill="#22c55e" filter="url(#strongGlow)"/>
+    <circle cx="877.5" cy="410" r="3" fill="#22c55e" filter="url(#strongGlow)"/>
+  </g>
+
+  <!-- 能源设施细节 -->
+  <!-- 太阳能板群 -->
+  <g opacity="0.7">
+    <rect x="520" y="320" width="25" height="15" fill="#1a4d6d" stroke="#22c55e" stroke-width="1" opacity="0.8"/>
+    <rect x="560" y="315" width="25" height="15" fill="#1a4d6d" stroke="#22c55e" stroke-width="1" opacity="0.8"/>
+    <rect x="600" y="318" width="25" height="15" fill="#1a4d6d" stroke="#22c55e" stroke-width="1" opacity="0.8"/>
+  </g>
+
+  <!-- 右侧：监控和数据中心 -->
+  <!-- 监控屏幕 -->
+  <g opacity="0.92">
+    <rect x="1100" y="280" width="200" height="150" fill="#0a1929" stroke="#00d9ff" stroke-width="3" filter="url(#cyberGlow)" rx="6"/>
+    <rect x="1115" y="305" width="170" height="110" fill="#1a3a52" stroke="#22c55e" stroke-width="1.5" opacity="0.7" rx="2"/>
+
+    <!-- 显示内容 -->
+    <text x="1200" y="330" fill="#00d9ff" font-family="system-ui" font-size="16" font-weight="700" text-anchor="middle">实时监控</text>
+    <polyline points="1125,355 1150,335 1175,350 1200,320 1225,345 1250,325 1270,340"
+              stroke="#22c55e" stroke-width="2" fill="none" filter="url(#cyberGlow)"/>
+    <circle cx="1200" cy="380" r="3" fill="#00d9ff"/>
+    <circle cx="1225" cy="370" r="3" fill="#22c55e"/>
+  </g>
+
+  <!-- 数据中心服务器 -->
+  <g opacity="0.85">
+    <rect x="1050" y="470" width="80" height="100" fill="#0f3a52" stroke="#22c55e" stroke-width="2" filter="url(#cyberGlow)"/>
+    <line x1="1060" y1="485" x2="1120" y2="485" stroke="#00d9ff" stroke-width="1" opacity="0.6"/>
+    <line x1="1060" y1="505" x2="1120" y2="505" stroke="#00d9ff" stroke-width="1" opacity="0.6"/>
+    <line x1="1060" y1="525" x2="1120" y2="525" stroke="#00d9ff" stroke-width="1" opacity="0.6"/>
+    <circle cx="1140" cy="490" r="3" fill="#22c55e"/>
+    <circle cx="1140" cy="510" r="3" fill="#22c55e"/>
+    <circle cx="1140" cy="530" r="3" fill="#22c55e"/>
+  </g>
+
+  <!-- 数据流连接 -->
+  <g opacity="0.5" stroke="#00d9ff" stroke-width="2" stroke-dasharray="4,4" filter="url(#cyberGlow)">
+    <path d="M 920 400 Q 1000 350 1100 320"/>
+    <path d="M 920 420 Q 1000 480 1050 490"/>
+  </g>
+
+  <!-- 能源数据指标 (底部) -->
+  <g opacity="0.88">
+    <!-- 总能耗 -->
+    <rect x="480" y="650" width="160" height="95" fill="#0a1929" stroke="#22c55e" stroke-width="2.5" rx="6" filter="url(#cyberGlow)"/>
+    <text x="560" y="680" fill="#22c55e" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">总能耗</text>
+    <text x="560" y="710" fill="#86efac" font-family="system-ui" font-size="22" font-weight="700" text-anchor="middle">2,847 kW</text>
+    <text x="560" y="730" fill="#64748b" font-family="system-ui" font-size="11" text-anchor="middle">↓ 18% vs 去年</text>
+
+    <!-- 效率等级 -->
+    <rect x="730" y="650" width="160" height="95" fill="#0a1929" stroke="#00d9ff" stroke-width="2.5" rx="6" filter="url(#cyberGlow)"/>
+    <text x="810" y="680" fill="#00d9ff" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">效率等级</text>
+    <text x="810" y="710" fill="#93c5fd" font-family="system-ui" font-size="22" font-weight="700" text-anchor="middle">PUE 1.32</text>
+    <text x="810" y="730" fill="#64748b" font-family="system-ui" font-size="11" text-anchor="middle">优异</text>
+
+    <!-- 碳排放 -->
+    <rect x="980" y="650" width="160" height="95" fill="#0a1929" stroke="#22c55e" stroke-width="2.5" rx="6" filter="url(#cyberGlow)"/>
+    <text x="1060" y="680" fill="#22c55e" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">碳排放减少</text>
+    <text x="1060" y="710" fill="#86efac" font-family="system-ui" font-size="22" font-weight="700" text-anchor="middle">-28%</text>
+    <text x="1060" y="730" fill="#64748b" font-family="system-ui" font-size="11" text-anchor="middle">vs 基准线</text>
+  </g>
+
+  <!-- 中心能源核心脉冲 -->
+  <g opacity="0.3">
+    <circle cx="700" cy="420" r="220" fill="url(#corePulse)"/>
+    <circle cx="700" cy="420" r="180" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="700" cy="420" r="140" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- 顶部标题区 -->
+  <g opacity="0.9">
+    <text x="800" y="80" fill="#22c55e" font-family="system-ui" font-size="32" font-weight="700" text-anchor="middle">能源数字孪生平台</text>
+    <text x="800" y="115" fill="#00d9ff" font-family="system-ui" font-size="16" text-anchor="middle">Industrial IoT Digital Twin • Real-time Energy Monitoring</text>
+    <line x1="550" y1="135" x2="1050" y2="135" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- 右下角：技术栈标签 -->
+  <g opacity="0.6">
+    <rect x="1250" y="650" width="120" height="35" fill="#0a1929" stroke="#00d9ff" stroke-width="1" rx="4"/>
+    <text x="1310" y="672" fill="#00d9ff" font-family="system-ui" font-size="11" font-weight="600" text-anchor="middle">5G IoT + AI Analytics</text>
+  </g>
+</svg>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>能源门户管理工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 30px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 450px;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      color: #333;
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .button {
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+
+    .button:hover::before {
+      left: 100%;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-cms {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      color: white;
+    }
+
+    .btn-preview {
+      background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+      color: white;
+    }
+
+    .btn-publish {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+    }
+
+    .status {
+      padding: 16px;
+      background: #ecf0f1;
+      border-left: 4px solid #3498db;
+      border-radius: 6px;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+      animation: fadeIn 0.3s ease;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .status.success {
+      border-left-color: #27ae60;
+      background: #f0fdf4;
+      color: #1e7e34;
+    }
+
+    .status.error {
+      border-left-color: #e74c3c;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .status.info {
+      border-left-color: #3498db;
+      background: #f0f9ff;
+      color: #0c4a6e;
+    }
+
+    .icon {
+      font-size: 18px;
+      display: inline-block;
+    }
+
+    .url-link {
+      margin-top: 15px;
+      padding: 12px;
+      background: #f0f4f8;
+      border-radius: 6px;
+      text-align: center;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .url-link.show {
+      display: block;
+    }
+
+    .url-link a {
+      color: #3498db;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      word-break: break-all;
+    }
+
+    .url-link a:hover {
+      text-decoration: underline;
+      color: #2980b9;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      background: currentColor;
+      border-radius: 50%;
+      animation: blink 1.4s infinite;
+    }
+
+    .loading:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .loading:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loading:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+      0%, 60%, 100% {
+        opacity: 0.3;
+      }
+      30% {
+        opacity: 1;
+      }
+    }
+
+    .version {
+      font-size: 11px;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚡ 能源门户管理</h1>
+      <p>Energy Portal Manager</p>
+      <p class="version">v0.1.0 (WebView2)</p>
+    </div>
+
+    <div class="button-group">
+      <button class="button btn-cms" onclick="startCMS()">
+        <span class="icon">🚀</span>
+        <span>启动 CMS 后台</span>
+      </button>
+
+      <button class="button btn-preview" onclick="previewSite()">
+        <span class="icon">🌐</span>
+        <span>预览网站</span>
+      </button>
+
+      <button class="button btn-publish" onclick="publishSite()">
+        <span class="icon">📦</span>
+        <span>一键发布</span>
+      </button>
+    </div>
+
+    <div class="status" id="status">
+      👋 欢迎！点击上面的按钮开始操作
+    </div>
+
+    <div id="urlLink" class="url-link">
+      🔗 访问：<a id="statusUrl" href="#" target="_blank">http://localhost:3001</a>
+    </div>
+
+    <div class="footer">
+      ✅ 就绪 | Windows 10+ 兼容
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

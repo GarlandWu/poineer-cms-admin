@@ -1,23 +1,31 @@
 {
   "name": "energy-digital-twin-portal",
   "version": "0.1.0",
+  "author": "Garland Wu",
   "private": true,
   "description": "能源数据采集与数字孪生系统企业门户 — Next.js SSG",
   "scripts": {
-    "dev": "next dev",    
+    "dev": "next dev",
     "build": "node scripts/build.js",
     "preview": "npx --yes serve out -l 5000",
     "start": "npx serve@latest out",
     "deploy": "next build",
     "publish": "node scripts/publish.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "app": "node app-manager.js",
+    "app:build": "pkg app-manager.js --output dist/EnergyPortalManager.exe --targets win-x64 --node-range 20",
+    "electron": "electron electron/main.js",
+    "electron-dev": "electron electron/main.js",
+    "electron-build": "electron-builder --win portable"
   },
+  "main": "electron/main.js",
+  "homepage": "./",
   "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.417.0",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.417.0",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
@@ -25,11 +33,63 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^32.0.0",
+    "electron-builder": "^24.13.3",
     "postcss": "^8.4.40",
     "tailwindcss": "^3.4.7",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "wait-on": "^7.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "bin": "pkg-manager.js",
+  "pkg": {
+    "assets": [
+      "cms/**/*",
+      "src/**/*",
+      "public/**/*",
+      "scripts/**/*",
+      "next.config.js",
+      "tsconfig.json",
+      "tailwind.config.ts",
+      "postcss.config.js",
+      "package.json",
+      "package-lock.json"
+    ],
+    "targets": [
+      "win-x64"
+    ],
+    "scripts": [
+      "pkg-manager.js"
+    ]
+  },
+  "build": {
+    "appId": "com.pioneer-cms.portal",
+    "productName": "EnergyPortalManager",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "electron/**/*",
+      "electron-ui/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "EnergyPortalManager.exe"
+    }
   }
 }

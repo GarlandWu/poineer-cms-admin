@@ -25,6 +25,11 @@ export default function HomePage() {
       <section className="relative overflow-hidden border-b border-electric/10 dark:border-energy/20 hero-bg">
         <div className="tech-grid absolute inset-0" aria-hidden />
         <div className="gradient-glow absolute inset-0" aria-hidden />
+        {/* 数字孪生城市背景 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/Digital-twin-city-light.svg" alt="数字孪生城市" className="absolute inset-0 w-full h-full object-cover opacity-45 dark:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/Digital-twin-city.jpg" alt="数字孪生城市" className="hidden absolute inset-0 w-full h-full object-cover opacity-70 dark:block" />
         <svg className="absolute inset-0 w-full h-full opacity-5 dark:opacity-10" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 600" aria-hidden>
           <defs>
             <pattern id="topology-grid" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
@@ -167,7 +172,9 @@ export default function HomePage() {
           {partners.map((p) => (
             <div key={p.name} className="glass-card glow-border p-4 flex items-center justify-center hover:scale-105 transition-transform card-gradient-cyber">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.logo} alt={p.name} className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all" loading="lazy" />
+              <img src={p.logo.replace(/\.svg$/, '-light.svg')} alt={p.name} className="h-10 w-auto object-contain dark:hidden" loading="lazy" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.logo} alt={p.name} className="hidden h-10 w-auto object-contain dark:block" loading="lazy" />
             </div>
           ))}
         </div>

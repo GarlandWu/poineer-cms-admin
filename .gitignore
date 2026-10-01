@@ -32,5 +32,15 @@ next-env.d.ts
 # payload (本地 CMS 数据)
 /payload-data
 
+# Electron
+/dist
+/build
+electron/main.js.bak
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
 
 *.log

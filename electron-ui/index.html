@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>能源门户管理工具</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>⚡ 能源门户管理系统</h1>
+      <p class="subtitle">CMS 内容管理 • 门户预览 • 一键发布</p>
+      <div class="root-bar">
+        <span class="root-label">项目目录</span>
+        <code id="root-path">检测中...</code>
+        <button id="root-change-btn" class="btn btn-ghost">更改目录</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- CMS 部分 -->
+      <section class="card cms-section">
+        <div class="card-header">
+          <h2>📝 内容管理系统 (CMS)</h2>
+          <div class="status-badge" id="cms-badge">未运行</div>
+        </div>
+        <p class="card-description">管理能源解决方案、产品、案例和新闻内容</p>
+
+        <div class="button-group">
+          <button id="cms-start-btn" class="btn btn-primary">
+            <span class="btn-icon">▶️</span> 启动 CMS
+          </button>
+          <button id="cms-stop-btn" class="btn btn-danger" disabled>
+            <span class="btn-icon">⏹️</span> 停止 CMS
+          </button>
+        </div>
+
+        <div class="cms-links">
+          <a id="cms-open-inapp" href="#" class="link-btn" style="display: none;">
+            🪟 在应用内打开 CMS
+          </a>
+          <a id="cms-open-link" href="#" class="link-btn" style="display: none;">
+            🌐 用浏览器打开 (localhost:3001)
+          </a>
+        </div>
+
+        <div id="cms-log" class="log-container">
+          <p class="log-empty">等待启动...</p>
+        </div>
+      </section>
+
+      <!-- 预览部分 -->
+      <section class="card preview-section">
+        <div class="card-header">
+          <h2>👁️ 门户预览</h2>
+          <div class="status-badge" id="preview-badge">未运行</div>
+        </div>
+        <p class="card-description">本地预览门户网站效果，验证发布前的内容</p>
+
+        <div class="button-group">
+          <button id="build-btn" class="btn btn-info">
+            <span class="btn-icon">🔨</span> 构建（导出数据 + 构建）
+          </button>
+          <button id="preview-start-btn" class="btn btn-primary">
+            <span class="btn-icon">▶️</span> 启动预览
+          </button>
+          <button id="preview-stop-btn" class="btn btn-danger" disabled>
+            <span class="btn-icon">⏹️</span> 停止预览
+          </button>
+        </div>
+
+        <div class="preview-links">
+          <a id="preview-open-link" href="#" class="link-btn" style="display: none;">
+            🌐 打开预览 (localhost:5000)
+          </a>
+          <a id="preview-folder-link" href="#" class="link-btn" style="display: none;">
+            📁 打开产物文件夹 (out/)
+          </a>
+        </div>
+
+        <div id="preview-log" class="log-container">
+          <p class="log-empty">等待操作...</p>
+        </div>
+      </section>
+
+      <!-- 构建日志 -->
+      <section class="card build-section">
+        <div class="card-header">
+          <h2>🔨 构建日志</h2>
+        </div>
+        <div id="build-log" class="log-container">
+          <p class="log-empty">等待构建...</p>
+        </div>
+      </section>
+
+      <!-- 发布部分 -->
+      <section class="card publish-section">
+        <div class="card-header">
+          <h2>🚀 一键发布</h2>
+        </div>
+        <p class="card-description">构建 → 清理 → 复制 → Git 提交 → 推送到远程仓库</p>
+
+        <div class="button-group">
+          <button id="publish-btn" class="btn btn-success">
+            <span class="btn-icon">🚀</span> 执行发布
+          </button>
+        </div>
+
+        <div id="publish-log" class="log-container">
+          <p class="log-empty">等待发布...</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>版本 0.1.0 • <span id="timestamp"></span></p>
+    </footer>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

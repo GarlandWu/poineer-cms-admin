@@ -1,0 +1,20 @@
+{
+  "pkg": {
+    "scripts": ["pkg-manager.js"],
+    "assets": [
+      "cms/**/*",
+      "src/**/*",
+      "public/**/*",
+      "scripts/**/*",
+      "next.config.js",
+      "tsconfig.json",
+      "tailwind.config.ts",
+      "postcss.config.js",
+      "package.json",
+      "package-lock.json",
+      ".env.local"
+    ],
+    "targets": ["win-x64"],
+    "outputPath": "dist"
+  }
+}

@@ -135,6 +135,12 @@ function publishSite() {
 }
 
 function openBrowser(url) {
+  // 👈 添加这个判断：如果在无图形界面（如服务器/CI）或者设置了 NO_OPEN 环境变量，就跳过
+  if (process.env.NO_OPEN || process.env.CI) {
+    console.log(`🌐 浏览器未打开 (无头环境)。请手动访问: ${url}`);
+    return;
+  }
+
   try {
     if (process.platform === 'win32') {
       execSync(`start ${url}`);
@@ -145,7 +151,8 @@ function openBrowser(url) {
     }
     console.log(`🌐 已打开: ${url}`);
   } catch (err) {
-    console.error(`无法打开浏览器: ${err.message}`);
+    // 就算报错，也只打印一句提示，不要打印长长的调用栈
+    console.log(`🌐 无法自动打开浏览器，请手动访问: ${url}`);
   }
 }
 

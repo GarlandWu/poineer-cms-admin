@@ -73,8 +73,7 @@
       "buildResources": "assets"
     },
     "files": [
-      "electron/**/*",
-      "electron-ui/**/*",
+      "electron/main.js",
       "package.json",
       "!node_modules/**/*"
     ],
@@ -86,6 +85,10 @@
       {
         "from": "cms/.next/static",
         "to": "cms/.next/static"
+      },
+      {
+        "from": "cms/energy-portal.db",
+        "to": "cms/energy-portal.db"
       }
     ],
     "win": {

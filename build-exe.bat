@@ -30,19 +30,7 @@ if not exist "node_modules" (
 )
 
 echo.
-echo 🔨 第一步: 构建主站...
-echo.
-call npm run build
-if errorlevel 1 (
-    echo ❌ 主站构建失败
-    pause
-    exit /b 1
-)
-
-echo.
-echo ✅ 主站构建完成
-echo.
-echo 📦 第二步: 打包 Electron 应用...
+echo 📦 构建 CMS standalone 并打包 Electron 应用...
 echo.
 call npm run electron-build
 if errorlevel 1 (
@@ -56,13 +44,9 @@ echo ✅ 打包完成！
 echo.
 echo 📁 生成的文件位置: dist\
 echo.
-echo 文件清单:
-echo   • 能源门户管理系统 Setup 0.1.0.exe  (安装程序)
-echo   • 能源门户管理系统 0.1.0.exe        (便携版)
+echo 生成文件: dist\EnergyPortalManager.exe (便携版)
 echo.
-echo 💡 提示:
-echo   - 运行安装程序版本，用户需要安装
-echo   - 运行便携版本，可以直接运行，无需安装
+echo 双击后直接进入 CMS，门户构建与发布位于窗口菜单。
 echo.
 
 pause

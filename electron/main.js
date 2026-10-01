@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
@@ -10,12 +10,13 @@ const CMS_PORT = 3001;
 const PREVIEW_PORT = 5000;
 
 let mainWindow = null;
-let cmsWindow = null;
+let applicationMenu = null;
 
 /** 长驻服务进程：{ cms, preview } */
 const services = { cms: null, preview: null };
 /** 一次性任务进程：{ build, publish } */
 const tasks = { build: null, publish: null };
+const taskOutput = { build: [], publish: [] };
 
 /** 项目根目录（可持久化在 userData/config.json） */
 let projectRoot = null;
@@ -42,8 +43,18 @@ const writeConfig = (patch) => {
   }
 };
 
+const logCmsStartup = (message) => {
+  try {
+    const logPath = path.join(app.getPath('userData'), 'startup.log');
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${message}\r\n`, 'utf8');
+  } catch (error) {
+    console.error('写入 CMS 启动日志失败:', error.message);
+  }
+};
+
 const getCmsEnvironment = () => {
   const dataDir = path.join(app.getPath('userData'), 'cms');
+  const databasePath = path.join(dataDir, readConfig().databaseFile || 'energy-portal.db');
   const uploadDir = projectRoot
     ? path.join(projectRoot, 'public', 'uploads')
     : path.join(dataDir, 'uploads');
@@ -55,12 +66,62 @@ const getCmsEnvironment = () => {
   if (!config.payloadSecret) writeConfig({ payloadSecret });
 
   return {
-    DATABASE_URI: pathToFileURL(path.join(dataDir, 'energy-portal.db')).href,
+    DATABASE_URI: pathToFileURL(databasePath).href,
     PAYLOAD_SECRET: payloadSecret,
     PORTAL_UPLOAD_DIR: uploadDir,
     HOSTNAME: '127.0.0.1',
     PORT: String(CMS_PORT),
   };
+};
+
+const seedCmsDatabase = async () => {
+  const cmsDir = app.isPackaged
+    ? path.join(process.resourcesPath, 'cms')
+    : path.join(projectRoot, 'cms');
+  const dataDir = path.join(app.getPath('userData'), 'cms');
+  const config = readConfig();
+  const databaseFile = config.databaseFile || 'energy-portal.db';
+  const databasePath = path.join(dataDir, databaseFile);
+  const seedPath = path.join(cmsDir, 'energy-portal.db');
+  logCmsStartup(`Database seed check: packaged=${app.isPackaged}, seedExists=${fs.existsSync(seedPath)}, database=${databasePath}`);
+  if (!fs.existsSync(seedPath)) return;
+
+  fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(databasePath)) {
+    fs.copyFileSync(seedPath, databasePath);
+    return;
+  }
+
+  const { createClient } = require(path.join(cmsDir, 'node_modules', '@libsql', 'client'));
+  const client = createClient({ url: pathToFileURL(databasePath).href });
+  let hasContent = false;
+  try {
+    const tables = await client.execute(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+    );
+    const metadataTables = new Set(['payload_migrations', 'users_sessions']);
+    for (const row of tables.rows) {
+      const tableName = String(row.name);
+      if (metadataTables.has(tableName)) continue;
+      const escapedName = tableName.replaceAll('"', '""');
+      const result = await client.execute(`SELECT COUNT(*) AS count FROM "${escapedName}"`);
+      if (Number(result.rows[0].count) > 0) {
+        hasContent = true;
+        break;
+      }
+    }
+  } finally {
+    await client.close();
+  }
+  logCmsStartup(`Database seed content check: hasContent=${hasContent}`);
+  if (hasContent) return;
+
+  const backupPath = `${databasePath}.empty-${Date.now()}.bak`;
+  fs.copyFileSync(databasePath, backupPath);
+  const seededDatabaseFile = 'energy-portal-initialized.db';
+  fs.copyFileSync(seedPath, path.join(dataDir, seededDatabaseFile));
+  writeConfig({ databaseFile: seededDatabaseFile });
+  logCmsStartup(`Database seed copied: backup=${backupPath}, active=${seededDatabaseFile}`);
 };
 
 // ------------------------------------------------------------ 项目根目录解析
@@ -112,6 +173,87 @@ const send = (channel, payload) => {
   }
 };
 
+const updateMenuState = () => {
+  applicationMenu = Menu.buildFromTemplate([
+    {
+      label: '项目',
+      submenu: [
+        { label: '选择项目目录…', click: () => chooseProjectRoot() },
+        { label: projectRoot || '尚未选择项目目录', enabled: false },
+        { type: 'separator' },
+        {
+          label: '打开构建产物目录',
+          enabled: Boolean(projectRoot),
+          click: () => shell.openPath(path.join(projectRoot, 'out')),
+        },
+      ],
+    },
+    {
+      label: '门户',
+      submenu: [
+        {
+          label: tasks.build ? '正在构建…' : '构建静态门户',
+          accelerator: 'CmdOrCtrl+B',
+          enabled: Boolean(projectRoot) && !tasks.build && !tasks.publish,
+          click: async () => showTaskResult('build', await executeBuild()),
+        },
+        {
+          label: tasks.publish ? '正在发布…' : '构建并发布',
+          accelerator: 'CmdOrCtrl+Shift+P',
+          enabled: Boolean(projectRoot) && !tasks.build && !tasks.publish,
+          click: async () => {
+            const confirmation = await dialog.showMessageBox(mainWindow, {
+              type: 'warning',
+              message: '构建并发布门户？',
+              detail: '将导出 CMS 数据、构建静态站并执行 scripts/publish.js 推送到远程仓库。',
+              buttons: ['构建并发布', '取消'],
+              defaultId: 1,
+              cancelId: 1,
+            });
+            if (confirmation.response === 0) {
+              showTaskResult('publish', await executePublish());
+            }
+          },
+        },
+        { type: 'separator' },
+        {
+          label: services.preview ? '停止本地预览' : '启动本地预览',
+          enabled: Boolean(projectRoot) && !tasks.build && !tasks.publish && !tasks['preview-setup'],
+          click: async () => {
+            const wasRunning = Boolean(services.preview);
+            const result = wasRunning ? await stopService('preview') : await startPreview();
+            if (result.success && !wasRunning) await shell.openExternal(`http://localhost:${PREVIEW_PORT}`);
+            await dialog.showMessageBox(mainWindow, {
+              type: result.success ? 'info' : 'error',
+              message: result.message,
+            });
+            updateMenuState();
+          },
+        },
+      ],
+    },
+    {
+      label: '后台',
+      submenu: [
+        { label: '重新载入 CMS', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+        { type: 'separator' },
+        { label: '退出', role: 'quit' },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(applicationMenu);
+};
+
+const showTaskResult = async (task, result) => {
+  const recentOutput = taskOutput[task].slice(-12).join('\n');
+  await dialog.showMessageBox(mainWindow, {
+    type: result.success ? 'info' : 'error',
+    message: result.success ? (task === 'build' ? '门户构建完成' : '发布流程完成') : result.message,
+    detail: recentOutput || result.message,
+  });
+  updateMenuState();
+};
+
 /** Windows 下必须整棵进程树杀掉，否则 next dev / serve 的子进程会残留 */
 const killTree = (child) =>
   new Promise((resolve) => {
@@ -128,8 +270,7 @@ const killTree = (child) =>
     }
   });
 
-/** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${id}-log` 频道 */
-/** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${logId}-log` 频道 */
+/** 启动子进程并保留构建/发布日志，供原生结果框展示。 */
 const spawnLogged = (id, command, args, cwd, logId = id, env = process.env) => {
   const child = spawn(command, args, {
     cwd,
@@ -145,7 +286,13 @@ const spawnLogged = (id, command, args, cwd, logId = id, env = process.env) => {
       chunk
         .split(/\r?\n/)
         .filter((line) => line.trim())
-        .forEach((line) => send(`${logId}-log`, line));
+        .forEach((line) => {
+          if (logId in taskOutput) {
+            taskOutput[logId].push(line);
+            if (taskOutput[logId].length > 100) taskOutput[logId].shift();
+          }
+          send(`${logId}-log`, line);
+        });
     });
   };
 
@@ -161,15 +308,18 @@ const runTask = (id, command, args, cwd, logId = id, env = process.env) =>
 
     const child = spawnLogged(id, command, args, cwd, logId, env);
     tasks[id] = child;
+    updateMenuState();
 
     child.on('error', (error) => {
       tasks[id] = null;
       send(`${logId}-log`, `启动失败: ${error.message}`);
+      updateMenuState();
       resolve({ success: false, message: error.message });
     });
 
     child.on('close', (code) => {
       tasks[id] = null;
+      updateMenuState();
       resolve(
         code === 0
           ? { success: true, message: '执行完成' }
@@ -191,15 +341,18 @@ const startService = async (id, command, args, cwd, port, readyMessage, env = pr
 
   const child = spawnLogged(id, command, args, cwd, id, env);
   services[id] = child;
+  updateMenuState();
 
   child.on('error', (error) => {
     services[id] = null;
+    updateMenuState();
     send(`${id}-log`, `启动失败: ${error.message}`);
     send(`${id}-stopped`);
   });
 
   child.on('close', (code) => {
     services[id] = null;
+    updateMenuState();
     send(`${id}-log`, `进程已退出 (代码 ${code})`);
     send(`${id}-stopped`);
   });
@@ -220,6 +373,7 @@ const stopService = async (id) => {
   if (!services[id]) return { success: true, message: '服务未在运行' };
   const child = services[id];
   services[id] = null;
+  updateMenuState();
   await killTree(child);
   send(`${id}-stopped`);
   return { success: true, message: '服务已停止' };
@@ -237,6 +391,11 @@ const startCms = async () => {
   const cmsDir = app.isPackaged
     ? path.join(process.resourcesPath, 'cms')
     : path.join(projectRoot, 'cms');
+  try {
+    await seedCmsDatabase();
+  } catch (error) {
+    return { success: false, message: `CMS 数据库初始化失败：${error.message}` };
+  }
   const cmsEnvironment = { ...process.env, ...getCmsEnvironment() };
 
   if (app.isPackaged) {
@@ -325,50 +484,23 @@ const stopAll = async () => {
 
 // -------------------------------------------------------------------- 窗口
 
-const createWindow = () => {
+const createCmsWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 860,
-    minWidth: 820,
-    minHeight: 600,
-    title: '能源门户管理系统',
-    backgroundColor: '#0b1220',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  mainWindow.loadFile(path.join(__dirname, '..', 'electron-ui', 'index.html'));
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-};
-
-/** 在应用内直接打开 CMS 后台，运营人员无需切换浏览器 */
-const openCmsWindow = () => {
-  if (cmsWindow && !cmsWindow.isDestroyed()) {
-    cmsWindow.focus();
-    return;
-  }
-  cmsWindow = new BrowserWindow({
     width: 1440,
-    height: 900,
-    title: '内容管理后台 (CMS)',
+    height: 920,
+    minWidth: 1024,
+    minHeight: 680,
+    title: '能源数字孪生内容管理后台',
     backgroundColor: '#ffffff',
     show: false,
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
-  cmsWindow.loadURL(`http://localhost:${CMS_PORT}/admin`);
-  cmsWindow.once('ready-to-show', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
-    cmsWindow.show();
-  });
-  cmsWindow.on('closed', () => {
-    cmsWindow = null;
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+
+  mainWindow.loadURL(`http://localhost:${CMS_PORT}/admin`);
+  mainWindow.once('ready-to-show', () => mainWindow?.show());
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 };
 
@@ -376,20 +508,24 @@ const openCmsWindow = () => {
 
 let quitting = false;
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   projectRoot = resolveProjectRoot();
-  createWindow();
-
-    mainWindow.webContents.once('did-finish-load', async () => {
-      if (!projectRoot) send('root-missing');
-    send('cms-log', '正在自动启动 CMS ...');
-    const result = await startCms();
-    send('cms-log', result.message);
-      if (result.success) {
-        send('cms-started');
-        openCmsWindow();
-      }
-  });
+  logCmsStartup(`Application ready: packaged=${app.isPackaged}, projectRoot=${projectRoot || 'none'}, resourcesPath=${process.resourcesPath}`);
+  updateMenuState();
+  const result = await startCms();
+  logCmsStartup(`CMS startup result: success=${result.success}, message=${result.message}`);
+  if (!result.success) {
+    await dialog.showMessageBox({
+      type: 'error',
+      title: 'CMS 启动失败',
+      message: result.message,
+      detail: '请检查端口 3001 是否被占用，然后重新启动应用。',
+    });
+    app.quit();
+    return;
+  }
+  createCmsWindow();
+  updateMenuState();
 });
 
 app.on('window-all-closed', () => {
@@ -407,121 +543,102 @@ app.on('before-quit', async (event) => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) createWindow();
+  if (mainWindow === null && services.cms) createCmsWindow();
 });
 
-// ------------------------------------------------------------------- IPC
-
-ipcMain.handle('start-cms', async () => {
-  const result = await startCms();
-  if (result.success) openCmsWindow();
-  return result;
-});
-
-ipcMain.handle('stop-cms', async () => {
-  const result = await stopService('cms');
-  if (cmsWindow && !cmsWindow.isDestroyed()) cmsWindow.close();
-  return result;
-});
-
-ipcMain.handle('open-cms-window', () => {
-  if (!services.cms) return { success: false, message: 'CMS 未在运行，请先启动' };
-  openCmsWindow();
-  return { success: true, message: '已打开 CMS 窗口' };
-});
-
-ipcMain.handle('start-preview', () => startPreview());
-
-ipcMain.handle('stop-preview', () => stopService('preview'));
-
-// 构建：导出 CMS 数据 → Next.js 静态导出
-ipcMain.handle('build', async () => {
+const executeBuild = async () => {
   if (!projectRoot) return { success: false, message: '未设置项目根目录' };
+  taskOutput.build = [];
+  const cmsDir = path.join(projectRoot, 'cms');
+  const payloadCli = path.join(cmsDir, 'node_modules', 'payload', 'bin.js');
+  const nextCli = path.join(projectRoot, 'node_modules', 'next', 'dist', 'bin', 'next');
+  if (!fs.existsSync(payloadCli) || !fs.existsSync(nextCli)) {
+    return {
+      success: false,
+      message: '项目依赖未安装，请先在项目目录运行 npm install 和 npm install --prefix cms',
+    };
+  }
 
-  send('build-log', '[1/2] 导出 CMS 数据 (cms: npm run export) ...');
+  taskOutput.build.push('[1/2] 导出 CMS 数据 (cms: npm run export) ...');
   const cmsEnvironment = { ...process.env, ...getCmsEnvironment() };
   const exported = await runTask(
     'build',
-    'npm',
-    ['run', 'export'],
-    path.join(projectRoot, 'cms'),
+    process.execPath,
+    [payloadCli, 'run', './src/scripts/export.ts'],
+    cmsDir,
     'build',
-    cmsEnvironment
+    { ...cmsEnvironment, ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: '--no-deprecation' }
   );
   if (!exported.success) return { success: false, message: `CMS 数据导出失败：${exported.message}` };
 
-  send('build-log', '[2/2] 构建主站 (next build) ...');
+  taskOutput.build.push('[2/2] 构建主站 (next build) ...');
   const built = await runTask(
     'build',
-    'npx',
-    ['--no-install', 'next', 'build'],
+    process.execPath,
+    [nextCli, 'build'],
     projectRoot,
     'build',
-    cmsEnvironment
+    { ...cmsEnvironment, ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: '--no-deprecation' }
   );
   if (!built.success) return { success: false, message: `主站构建失败：${built.message}` };
 
-  send('build-log', '构建完成，产物位于 out/');
-  return { success: true, message: '构建完成' };
-});
+  taskOutput.build.push('构建完成，产物位于 out/');
+  return { success: true, message: '构建完成，产物位于 out/' };
+};
 
 // 一键发布：构建 → 清理 submodule → 复制产物 → git 提交推送
-ipcMain.handle('publish', () => {
+const executePublish = () => {
   if (!projectRoot) return { success: false, message: '未设置项目根目录' };
+  taskOutput.publish = [];
   return runTask(
     'publish',
-    'node',
+    process.execPath,
     ['scripts/publish.js'],
     projectRoot,
     'publish',
-    { ...process.env, ...getCmsEnvironment() }
+    {
+      ...process.env,
+      ...getCmsEnvironment(),
+      ELECTRON_RUN_AS_NODE: '1',
+      NODE_OPTIONS: '--no-deprecation',
+    }
   );
-});
-
-ipcMain.handle('open-url', async (_event, url) => {
-  await shell.openExternal(url);
-});
-
-ipcMain.handle('open-folder', async (_event, relativePath) => {
-  const target = path.resolve(projectRoot || app.getPath('home'), relativePath || '.');
-  await shell.openPath(target);
-});
-
-ipcMain.handle('get-status', () => ({
-  cmsRunning: Boolean(services.cms),
-  previewRunning: Boolean(services.preview),
-  busy: {
-    build: Boolean(tasks.build),
-    publish: Boolean(tasks.publish),
-    cmsSetup: Boolean(tasks['cms-setup']),
-    previewSetup: Boolean(tasks['preview-setup']),
-  },
-  projectRoot,
-  cmsUrl: `http://localhost:${CMS_PORT}/admin`,
-  previewUrl: `http://localhost:${PREVIEW_PORT}`,
-  version: app.getVersion(),
-}));
+};
 
 /** 运营人员手动指定项目目录（打包版放在其他位置时使用） */
-ipcMain.handle('choose-root', async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+const chooseProjectRoot = async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow || undefined, {
     title: '选择项目根目录（须包含 cms 与 scripts/publish.js）',
     properties: ['openDirectory'],
   });
-  if (canceled || !filePaths[0]) return { success: false, message: '已取消' };
+  if (canceled || !filePaths[0]) return false;
 
   if (!isValidRoot(filePaths[0])) {
-    return { success: false, message: '该目录不是有效的项目根目录' };
+    await dialog.showMessageBox(mainWindow || undefined, {
+      type: 'error',
+      message: '该目录不是有效的门户项目目录。',
+      detail: '目录中需要包含 package.json、cms/ 和 scripts/publish.js。',
+    });
+    return false;
   }
 
-  const restartCms = Boolean(services.cms);
-  await stopAll();
+  if (services.preview) await stopService('preview');
+  if (services.cms) await stopService('cms');
   projectRoot = filePaths[0];
   writeConfig({ projectRoot });
-  if (restartCms) {
-    const restarted = await startCms();
-    if (restarted.success) send('cms-started');
-    else send('cms-log', restarted.message);
+  const restarted = await startCms();
+  if (!restarted.success) {
+    await dialog.showMessageBox(mainWindow || undefined, {
+      type: 'error',
+      message: 'CMS 无法使用新项目目录启动。',
+      detail: restarted.message,
+    });
+    app.quit();
+    return false;
   }
-  return { success: true, message: `项目目录已设置为 ${projectRoot}`, projectRoot };
-});
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    await mainWindow.loadURL(`http://localhost:${CMS_PORT}/admin`);
+  }
+  updateMenuState();
+  return true;
+};

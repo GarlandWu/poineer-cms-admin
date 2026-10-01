@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const rootPath = process.cwd();
 const outPath = path.join(rootPath, 'out');
@@ -13,9 +13,21 @@ console.log('📦 发布流程开始\n');
 // Step 1: 构建
 console.log('🔨 Step 1: 执行构建...');
 try {
-  execSync('cd ./cms && npm run export && cd .. && next build', {
+  const cmsPath = path.join(rootPath, 'cms');
+  const payloadCli = path.join(cmsPath, 'node_modules', 'payload', 'bin.js');
+  const nextCli = path.join(rootPath, 'node_modules', 'next', 'dist', 'bin', 'next');
+  if (!fs.existsSync(payloadCli) || !fs.existsSync(nextCli)) {
+    throw new Error('项目依赖未安装，请先安装根目录与 cms/ 的 npm 依赖');
+  }
+  execFileSync(process.execPath, [payloadCli, 'run', './src/scripts/export.ts'], {
+    cwd: cmsPath,
     stdio: 'inherit',
-    shell: true
+    env: process.env,
+  });
+  execFileSync(process.execPath, [nextCli, 'build'], {
+    cwd: rootPath,
+    stdio: 'inherit',
+    env: process.env,
   });
   console.log('✅ 构建完成\n');
 } catch (error) {

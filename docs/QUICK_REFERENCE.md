@@ -245,7 +245,7 @@ DEBUG=* npm run electron-build
 ```bash
 cd cms
 npm run export
-# 查看生成的 JSON 文件: ../src/data/
+# 查看生成的 JSON 文件: ../pages/src/data/
 ```
 
 ## 📞 何时寻求帮助

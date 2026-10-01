@@ -106,7 +106,8 @@ const killTree = (child) =>
   });
 
 /** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${id}-log` 频道 */
-const spawnLogged = (id, command, args, cwd) => {
+/** 启动子进程，并把 stdout/stderr 逐行推送到渲染进程的 `${logId}-log` 频道 */
+const spawnLogged = (id, command, args, cwd, logId = id) => {
   const child = spawn(command, args, {
     cwd,
     shell: true,
@@ -121,7 +122,7 @@ const spawnLogged = (id, command, args, cwd) => {
       chunk
         .split(/\r?\n/)
         .filter((line) => line.trim())
-        .forEach((line) => send(`${id}-log`, line));
+        .forEach((line) => send(`${logId}-log`, line));
     });
   };
 
@@ -131,16 +132,16 @@ const spawnLogged = (id, command, args, cwd) => {
 };
 
 /** 一次性任务：跑完即返回结果 */
-const runTask = (id, command, args, cwd) =>
+const runTask = (id, command, args, cwd, logId = id) =>
   new Promise((resolve) => {
     if (tasks[id]) return resolve({ success: false, message: '该任务正在执行中' });
 
-    const child = spawnLogged(id, command, args, cwd);
+    const child = spawnLogged(id, command, args, cwd, logId);
     tasks[id] = child;
 
     child.on('error', (error) => {
       tasks[id] = null;
-      send(`${id}-log`, `启动失败: ${error.message}`);
+      send(`${logId}-log`, `启动失败: ${error.message}`);
       resolve({ success: false, message: error.message });
     });
 
@@ -197,6 +198,74 @@ const stopService = async (id) => {
   await killTree(child);
   send(`${id}-stopped`);
   return { success: true, message: '服务已停止' };
+};
+
+// ------------------------------------------------------------ CMS 启动流程
+
+/**
+ * 启动 CMS：安装依赖 → 生成 importmap → 启动 dev 服务。
+ * npm install 与 generate:importmap 均在 cms/ 子目录中执行。
+ */
+const startCms = async () => {
+  if (!projectRoot) return { success: false, message: '未设置项目根目录' };
+  if (services.cms) return { success: false, message: 'CMS 已在运行' };
+
+  const cmsDir = path.join(projectRoot, 'cms');
+
+  if (!fs.existsSync(path.join(cmsDir, 'node_modules'))) { 
+    send('cms-log', '[1/3] 安装依赖 (npm install) ...');
+    const installed = await runTask('cms-setup', 'npm', ['install'], cmsDir, 'cms');
+    if (!installed.success) {
+      return { success: false, message: `依赖安装失败：${installed.message}` };
+    } 
+  }
+  
+
+  send('cms-log', '[2/3] 生成 importmap (npm run generate:importmap) ...');
+  const generated = await runTask('cms-setup', 'npm', ['run', 'generate:importmap'], cmsDir, 'cms');
+  if (!generated.success) {
+    return { success: false, message: `importmap 生成失败：${generated.message}` };
+  }
+
+  send('cms-log', '[3/3] 启动 CMS 开发服务 ...');
+  return startService(
+    'cms',
+    'npm',
+    ['run', 'dev'],
+    cmsDir,
+    CMS_PORT,
+    `CMS 已启动：http://localhost:${CMS_PORT}/admin`
+  );
+};
+
+// ------------------------------------------------------- 预览服务启动流程
+
+/**
+ * 启动预览：安装依赖 → serve out/。
+ * npm install 在项目根目录执行（serve 本身走 npx，无需本地安装）。
+ */
+const startPreview = async () => {
+  if (!projectRoot) return { success: false, message: '未设置项目根目录' };
+  if (services.preview) return { success: false, message: '预览服务已在运行' };
+  if (!fs.existsSync(path.join(projectRoot, 'out'))) {
+    return { success: false, message: '未找到 out/ 产物目录，请先执行「构建」' };
+  }
+
+  send('preview-log', '[1/2] 安装依赖 (npm install) ...');
+  const installed = await runTask('preview-setup', 'npm', ['install'], projectRoot, 'preview');
+  if (!installed.success) {
+    return { success: false, message: `依赖安装失败：${installed.message}` };
+  }
+
+  send('preview-log', '[2/2] 启动预览服务 ...');
+  return startService(
+    'preview',
+    'npx',
+    ['--yes', 'serve@latest', 'out', '-l', String(PREVIEW_PORT)],
+    projectRoot,
+    PREVIEW_PORT,
+    `预览服务已启动：http://localhost:${PREVIEW_PORT}`
+  );
 };
 
 const stopAll = async () => {
@@ -262,21 +331,14 @@ app.whenReady().then(() => {
   projectRoot = resolveProjectRoot();
   createWindow();
 
-  mainWindow.webContents.once('did-finish-load', async () => {
+    mainWindow.webContents.once('did-finish-load', async () => {
     if (!projectRoot) {
       send('root-missing');
       return;
     }
     // 默认行为：应用启动即拉起 CMS
     send('cms-log', '正在自动启动 CMS ...');
-    const result = await startService(
-      'cms',
-      'npm',
-      ['run', 'dev'],
-      path.join(projectRoot, 'cms'),
-      CMS_PORT,
-      `CMS 已启动：http://localhost:${CMS_PORT}/admin`
-    );
+    const result = await startCms();
     send('cms-log', result.message);
     if (result.success) send('cms-started');
   });
@@ -302,16 +364,7 @@ app.on('activate', () => {
 
 // ------------------------------------------------------------------- IPC
 
-ipcMain.handle('start-cms', () =>
-  startService(
-    'cms',
-    'npm',
-    ['run', 'dev'],
-    path.join(projectRoot || '', 'cms'),
-    CMS_PORT,
-    `CMS 已启动：http://localhost:${CMS_PORT}/admin`
-  )
-);
+ipcMain.handle('start-cms', () => startCms());
 
 ipcMain.handle('stop-cms', () => stopService('cms'));
 
@@ -321,20 +374,7 @@ ipcMain.handle('open-cms-window', () => {
   return { success: true, message: '已打开 CMS 窗口' };
 });
 
-ipcMain.handle('start-preview', async () => {
-  if (!projectRoot) return { success: false, message: '未设置项目根目录' };
-  if (!fs.existsSync(path.join(projectRoot, 'out'))) {
-    return { success: false, message: '未找到 out/ 产物目录，请先执行「构建」' };
-  }
-  return startService(
-    'preview',
-    'npx',
-    ['--yes', 'serve@latest', 'out', '-l', String(PREVIEW_PORT)],
-    projectRoot,
-    PREVIEW_PORT,
-    `预览服务已启动：http://localhost:${PREVIEW_PORT}`
-  );
-});
+ipcMain.handle('start-preview', () => startPreview());
 
 ipcMain.handle('stop-preview', () => stopService('preview'));
 
@@ -372,7 +412,12 @@ ipcMain.handle('open-folder', async (_event, relativePath) => {
 ipcMain.handle('get-status', () => ({
   cmsRunning: Boolean(services.cms),
   previewRunning: Boolean(services.preview),
-  busy: { build: Boolean(tasks.build), publish: Boolean(tasks.publish) },
+  busy: {
+    build: Boolean(tasks.build),
+    publish: Boolean(tasks.publish),
+    cmsSetup: Boolean(tasks['cms-setup']),
+    previewSetup: Boolean(tasks['preview-setup']),
+  },
   projectRoot,
   cmsUrl: `http://localhost:${CMS_PORT}/admin`,
   previewUrl: `http://localhost:${PREVIEW_PORT}`,
